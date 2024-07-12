@@ -16,12 +16,15 @@ const pdfExtract = new PDFExtract();
 
 // Definir el post para la subida de archivo PDF
 app.post('/upload', upload.single('pdf'), async (req, res) => {
+    console.log('Received upload request');
     // Verificar si se ha subido el archivo
     if (!req.file) {
+        console.log('no file upload')
         return res.status(400).send('No file uploaded');
     }
 
     try {
+        console.log('processing pdf')
         // leer el archivo pdf subido
         const data = await pdfExtract.extract(req.file.path);
 
@@ -37,6 +40,7 @@ app.post('/upload', upload.single('pdf'), async (req, res) => {
         // eliminar archivo temporal
         fs.unlinkSync(req.file.path);
 
+        console.log('sending response')
         res.json(extractedInfo);
     } catch (error) {
         console.error('Error processing PDF:', error);
