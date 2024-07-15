@@ -4,18 +4,23 @@ import FileUpload from './components/FileUpload';
 import PdfViewer from './components/PdfViewer';
 import axios from 'axios';
 import { HfInference } from '@huggingface/inference';
+import { Button } from './components/ui/button';
+import { ReloadIcon } from '@radix-ui/react-icons';
 
 const API_KEY = process.env.REACT_APP_HF_API_KEY;
 
 const App: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [extractedText, setExtractedText] = useState<string>('');
-  const [summary, setSummary] = useState<string>('')
+  const [summary, setSummary] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
 
   const hf = new HfInference(API_KEY)
 
   const handleFileChange = (newFile: File) => {
     setFile(newFile);
+    setExtractedText('');
+    setSummary('')
   }
 
   const handleAnalyze = async () => {
@@ -27,6 +32,8 @@ const App: React.FC = () => {
     const formData = new FormData();
     formData.append('pdf', file);
 
+    setLoading(true);
+
     try {
       // Subir archivo al backend
       const response = await axios.post('http://localhost:3001/upload', formData, {
@@ -37,9 +44,11 @@ const App: React.FC = () => {
       setExtractedText(response.data.text);
 
       // analizar el texto con huggin face
-      await analyzeText(response.data.text)
+      await analyzeText(response.data.text);
     } catch (error) {
       console.error('Error processing file:', error);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -75,18 +84,40 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className='App'>
-      <h1>PDF Automation Tool</h1>
+    <div className='mx-4 my-10 lg:max-w-4xl lg:mx-auto'>
+      <div className=''>
+      <h1 className='text-3xl text-center mb-9'>PDF Automation Tool</h1>
       <FileUpload onFileChange={handleFileChange} />
       {file && <PdfViewer file={file} />}
-      <button className='cursor-pointer bg-slate-400' onClick={handleAnalyze} disabled={!file}>Resumir</button>
-      <div>
-        <h3>Extracted Text:</h3>
-        <pre>{extractedText}</pre>
+      <div className=''>
+      <Button className='my-4' onClick={handleAnalyze} disabled={!file || loading}>{loading ? 'Analyzing' : 'Analyze'}</Button>
       </div>
-      <div>
-        <h3>symmary:</h3>
-        <pre>{summary}</pre>
+          {
+            loading ? (
+              <div className='text-center'>
+                  <ReloadIcon className="mr-2 h-4 w-10 animate-spin" />
+              </div>
+            ) : (
+            <div>
+              <div className='my-4'>
+              {extractedText && (
+            <div>
+              <h3 className='text-lg font-bold mb-2'>Extracted Text:</h3>
+              <pre className='extracted-text bg-gray-100 p-4 border border-gray-300 rounded-md shadow-md whitespace-pre-wrap text-sm text-gray-700'>{extractedText}</pre>
+            </div>
+        )}
+            </div>
+              <div className=''>
+              {summary && (
+            <div>
+              <h3 className='text-lg font-bold mb-2'>Summary:</h3>
+              <pre className='extracted-text bg-gray-100 p-4 border border-gray-300 rounded-md shadow-md whitespace-pre-wrap text-sm text-gray-700'>{summary}</pre>
+            </div>
+        )}
+      </div>
+              </div>
+            )
+          }
       </div>
     </div>
   )
