@@ -17,6 +17,7 @@ const multer_1 = __importDefault(require("multer")); // Middleware para manejar 
 const cors_1 = __importDefault(require("cors")); // Middleware para habilitar CORS (Cross-Origin Resource Sharing)
 const fs_1 = __importDefault(require("fs")); // Módulo para interactuar con el sistema de archivos
 const pdf_js_extract_1 = require("pdf.js-extract"); // Librería para extraer texto de archivos PDF
+const path_1 = __importDefault(require("path"));
 const app = (0, express_1.default)();
 const port = 3001;
 app.use((0, cors_1.default)()); // Habilitar CORS para las rutas
@@ -31,12 +32,13 @@ app.post('/upload', upload.single('pdf'), (req, res) => __awaiter(void 0, void 0
         console.log('no file upload');
         return res.status(400).send('No file uploaded');
     }
+    const pdfPath = path_1.default.join(__dirname, req.file.path);
     try {
         console.log('processing pdf');
         // leer el archivo pdf subido
         const data = yield pdfExtract.extract(req.file.path);
         // extraer el texto del PDF usando pdf-parse
-        const extractedText = data.pages.map(page => page.content.map(item => item.str).join(' ')).join('\n');
+        const extractedText = data.pages.map((page) => page.content.map((item) => item.str).join(' ')).join('\n');
         // Crear un objeto con la información extraída
         // extraccion de informacion especifica
         const extractedInfo = {
@@ -56,5 +58,5 @@ app.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.json('Hola');
 }));
 app.listen(port, () => {
-    console.log('port listen');
+    console.log(`Server listening on port ${port}`);
 });
