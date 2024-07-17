@@ -9,7 +9,6 @@ PDF Automation Tool es una herramienta que permite extraer información clave de
 - Subida de archivos PDF.
 - Extracción de texto de documentos PDF.
 - Interfaz web para cargar y ver archivos PDF.
-- Exportación de datos extraídos en formatos JSON, CSV, y Excel.
 - Manejo de precisión en la extracción de información de diferentes layouts.
 - Optimización del rendimiento para un procesamiento rápido.
 
