@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 import './App.css';
 import FileUpload from './components/FileUpload';
 import PdfViewer from './components/PdfViewer';
@@ -15,13 +15,13 @@ const App: React.FC = () => {
   const [summary, setSummary] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
 
-  const hf = new HfInference(API_KEY)
+  const hf = new HfInference(API_KEY);
 
   const handleFileChange = (newFile: File) => {
     setFile(newFile);
     setExtractedText('');
-    setSummary('')
-  }
+    setSummary('');
+  };
 
   const handleAnalyze = async () => {
     if (!file) {
@@ -35,22 +35,19 @@ const App: React.FC = () => {
     setLoading(true);
 
     try {
-      // Subir archivo al backend
       const response = await axios.post('https://pdf-automation-tool.onrender.com/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
       setExtractedText(response.data.text);
-
-      // analizar el texto con huggin face
       await analyzeText(response.data.text);
     } catch (error) {
       console.error('Error processing file:', error);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   const analyzeText = async (text: string) => {
     try {
@@ -58,68 +55,64 @@ const App: React.FC = () => {
       if (!text.trim()) {
         throw new Error('Empty text');
       }
-      
-      // Dividir el texto en palabras
+
       const words = text.split(/\s+/);
-      
-      // Tomar las primeras 500 palabras (ajusta este número según sea necesario)
       const truncatedText = words.slice(0, 125).join(' ');
-      
+
       console.log('Truncated text (first 100 chars):', truncatedText.substring(0, 100));
-      
+
       const res = await hf.summarization({
         model: 'facebook/bart-large-cnn',
-        inputs: text, 
+        inputs: text,
         parameters: {
-          max_length: 150, 
-          min_length: 30
-        }
-      })
-      
+          max_length: 150,
+          min_length: 30,
+        },
+      });
+
       setSummary(res.summary_text);
     } catch (error) {
       console.error('Error resumiendo el texto:', error);
       setSummary('Error en el resumen: ' + (error as Error).message);
     }
-  }
+  };
 
   return (
     <div className='mx-4 my-10 lg:max-w-4xl lg:mx-auto'>
-      <div className=''>
       <h1 className='text-3xl text-center mb-9'>PDF Automation Tool</h1>
       <FileUpload onFileChange={handleFileChange} />
       {file && <PdfViewer file={file} />}
       <div className=''>
-      <Button className='my-4' onClick={handleAnalyze} disabled={!file || loading}>{loading ? 'Analyzing' : 'Analyze'}</Button>
+        <Button className='my-4' onClick={handleAnalyze} disabled={!file || loading}>
+          {loading ? 'Analyzing...' : 'Analyze'}
+        </Button>
       </div>
-          {
-            loading ? (
-              <div className='text-center'>
-                  <ReloadIcon className="mr-2 h-4 w-10 animate-spin" />
-              </div>
-            ) : (
-            <div>
-              <div className='my-4'>
-              {extractedText && (
+      {loading ? (
+        <div className='text-center'>
+          <ReloadIcon className='mr-2 h-4 w-10 animate-spin' />
+        </div>
+      ) : (
+        <div>
+          {extractedText && (
             <div>
               <h3 className='text-lg font-bold mb-2'>Extracted Text:</h3>
-              <pre className='extracted-text bg-gray-100 p-4 border border-gray-300 rounded-md shadow-md whitespace-pre-wrap text-sm text-gray-700'>{extractedText}</pre>
+              <pre className='max-h-52 overflow-y-auto bg-gray-100 p-4 border border-gray-300 rounded-md shadow-md whitespace-pre-wrap text-sm text-gray-700'>
+                {extractedText}
+              </pre>
             </div>
-        )}
-            </div>
-              <div className=''>
-              {summary && (
+          )}
+          {summary && (
             <div>
               <h3 className='text-lg font-bold mb-2'>Summary:</h3>
-              <pre className='extracted-text bg-gray-100 p-4 border border-gray-300 rounded-md shadow-md whitespace-pre-wrap text-sm text-gray-700'>{summary}</pre>
+              <pre className='max-h-52 overflow-y-auto bg-gray-100 p-4 border border-gray-300 rounded-md shadow-md whitespace-pre-wrap text-sm text-gray-700'>
+                {summary}
+              </pre>
             </div>
-        )}
-      </div>
-              </div>
-            )
-          }
-      </div>
+          )}
+        </div>
+      )}
     </div>
-  )
-}
-export default App
+  );
+};
+
+export default App;
